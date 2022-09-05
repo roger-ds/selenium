@@ -1,4 +1,3 @@
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
@@ -10,7 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 t = 1
 cnpj = '22763502002827'
 data_ini = '2021-OUT'
-data_fim = '2021-OUT'
+data_fim = '2022-MAR'
 timeout = 500 # tempo limite em segundos para carregamento da pagina
 
 nav = webdriver.Firefox() #Chrome()
@@ -53,3 +52,35 @@ except:
 
 # Percorre a tabela de itens
 
+table = nav.find_elements(By.TAG_NAME, 'table')[3]
+body = table.find_elements(By.TAG_NAME, 'tbody')[2]
+rows = body.find_elements(By.TAG_NAME, 'tr')
+
+print(str(len(rows)) + ' - linhas')
+for i in range(len(rows)):
+    columns = rows[i].find_elements(By.TAG_NAME, 'td')
+    
+    l = [] 
+    values = [] 
+    for j in range(len(columns)): 
+        l.append(columns[j].text)
+    button = columns[4].find_element(By.TAG_NAME, 'button')
+
+    try:
+        values.append(l[0])
+        values.append(l[1].split('\n')[1])
+        values.append(l[2].split('\n')[0][6:13])
+        values.append(l[2].split('\n')[1][6:13])
+        values.append(l[2].split('\n')[2])
+        values.append(l[4].split('\n')[192])
+        keys = ['item', 'gtim', 'cest', 'ncm', 'desc', 'cest_sel']
+        linha =  dict(zip(keys, values))
+        if linha['cest'] == linha['cest_sel']:
+            print(linha)
+            button.click()
+            nav.implicitly_wait(t)
+
+    except IndexError as e:
+        print(f'[ERRO] na linha {i} - {e}')
+
+#nav.quit()
