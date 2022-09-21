@@ -4,6 +4,8 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from time import sleep
+
 
 # Dados
 t = 1
@@ -58,8 +60,11 @@ rows = body.find_elements(By.TAG_NAME, 'tr')
 
 print(str(len(rows)) + ' - linhas')
 ncm_erro = []
+dic_ncm_erro = dict()
+
 for i in range(len(rows)):
     columns = rows[i].find_elements(By.TAG_NAME, 'td')
+    id_ = i + 2
     
     l = [] 
     values = [] 
@@ -72,36 +77,62 @@ for i in range(len(rows)):
 
     if l[2].split('\n')[0][:6] == 'CEST :': 
         values.append(l[2].split('\n')[0][6:13])
-        values.append(l[2].split('\n')[1][6:14])
+        values.append(l[2].split('\n')[1][5:13])
         values.append(l[2].split('\n')[2])
-        keys = ['item', 'gtim', 'cest', 'ncm', 'desc']#, 'cest_sel']
-
-    values.append(l[2].split('\n')[0][6:14])
-    values.append(l[2].split('\n')[1])
-    keys = ['item', 'gtim', 'ncm', 'desc']
+        keys = ['item', 'gtim', 'cest', 'ncm', 'desc']
+    else:
+        values.append(l[2].split('\n')[0][5:13])
+        values.append(l[2].split('\n')[1])
+        keys = ['item', 'gtim', 'ncm', 'desc']
 
     l4 = l[4].split('\n')
-    if 'CEST' in l4:
-        cest_sel = l4.index('CEST') + 1
-        values.append(cest_sel)
+    cest_sel = l4.index('CEST') + 1
+    if l4[cest_sel] != '':
+        values.append(l4[cest_sel])
         keys.append('cest_sel')
 
     linha =  dict(zip(keys, values))
+    print(linha)
 
     try:
         if linha['cest'] == linha['cest_sel']:
-            print(linha)
             button.click()
             nav.implicitly_wait(t)
 
-    except IndexError as e:
-        print(f'[ERRO] na linha {i} - {e}')
-        ncm_erro.append(linha['ncm'])
-        autopecas = input( 'Sugestao de Classificacao: ')
+    except Exception as e:
+        print(f'[ERRO] na linha {i + 1} - {e}')
+        if linha['ncm'] not in ncm_erro:
+            ncm_erro.append(linha['ncm'])
+            input( 'Classificacao adotada: ') 
 
+            # classifica manualmente  e captrura selecao
+            select_element = nav.find_element(By.ID, 'PRO_' + str(id_))
+            select_object = Select(select_element)
+            select1 = select_object.first_selected_option.text        
+            print(select1)
 
+            select_element_div = nav.find_element(By.ID, 'CEST_' + str(id_))
+            select_element = select_element_div.find_element(By.TAG_NAME, 'select')
+            select_object = Select(select_element)
+            select2 = select_object.first_selected_option.text        
+            print(select2)
 
+            dic_ncm_erro.update({linha['ncm']: [select1, select2]})
+        else:
 
+            select_element = nav.find_element(By.ID, 'PRO_' + str(id_))
+            select_object = Select(select_element)
+            select1 = dic_ncm_erro[linha['ncm']][0]        
+            select_object.select_by_visible_text(select1)
+            sleep(t)
 
+            select_element_div = nav.find_element(By.ID, 'CEST_' + str(id_))
+            select_element = select_element_div.find_element(By.TAG_NAME, 'select')
+            select_object = Select(select_element)
+            select2 = dic_ncm_erro[linha['ncm']][1]        
+            select_object.select_by_visible_text(select2)
+            sleep(t)
 
+            button.click()
+            nav.implicitly_wait(t)
 #nav.quit()
