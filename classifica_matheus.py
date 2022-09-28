@@ -1,18 +1,47 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
-from selenium.webdriver.support.ui import WebDriverWait
+
+from selenium.common.exceptions import *
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.select import Select
+from selenium import webdriver
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+from time import sleep
+import sys
+
+def iniciar_driver():
+    firefox_options = Options()
+    arguments = ['--lang=pt-BR', '--width=1000', '--height=900', '--incognito']
+    for argument in arguments:
+        firefox_options.add_argument(argument)
+
+    driver = webdriver.Firefox(service=FirefoxService(
+        GeckoDriverManager().install()), options=firefox_options)
+
+    wait = WebDriverWait(
+        driver,
+        10,
+        poll_frequency=1,
+        ignored_exceptions=[
+            NoSuchElementException,
+            ElementNotVisibleException,
+            ElementNotSelectableException,
+        ]
+    )
+    return driver, wait
+
+nav, wait = iniciar_driver()
 
 # Dados
 t = 1
-cnpj = '22763502002827'
+cnpj = '05788992000187'
 data_ini = '2021-OUT'
 data_fim = '2022-MAR'
 timeout = 500 # tempo limite em segundos para carregamento da pagina
 
-nav = webdriver.Firefox() #Chrome()
 nav.get('https://www.sefaz.ap.gov.br/MATHEUS1/')
 nav.find_element(By.NAME, 'login').send_keys('rogerio.rodrigues')
 nav.find_element(By.NAME, 'senha').send_keys('Fiscal@960')
@@ -45,16 +74,20 @@ nav.find_element(By.NAME, 'submit').click()
 
 # Aguarda o carregamento da pagina
 try:
-    WebDriverWait(nav, timeout).until(lambda nav: nav.execute_script('return document.readyState') == 'complete')
+    wait.until(lambda nav: nav.execute_script('return document.readyState') == 'complete')
     print('Page is ready!')
 except:
     print('Loading took tooo much time')
 
 # Percorre a tabela de itens
 
-table = nav.find_elements(By.TAG_NAME, 'table')[3]
-body = table.find_elements(By.TAG_NAME, 'tbody')[2]
-rows = body.find_elements(By.TAG_NAME, 'tr')
+try:
+    table = nav.find_elements(By.TAG_NAME, 'table')[3]
+    body = table.find_elements(By.TAG_NAME, 'tbody')[2]
+    rows = body.find_elements(By.TAG_NAME, 'tr')
+except:
+    print('Não há itens a serem exibidos na tabela')
+    sys.exit(0)    
 
 print(str(len(rows)) + ' - linhas')
 for i in range(len(rows)):
