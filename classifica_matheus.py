@@ -37,7 +37,7 @@ nav, wait = iniciar_driver()
 
 # Dados
 t = 1
-cnpj = '00995313000127'
+cnpj = input('Entre com o CNPJ (apenas números): ')
 data_ini = '2021-OUT'
 data_fim = '2022-MAR'
 timeout = 500 # tempo limite em segundos para carregamento da pagina
