@@ -90,14 +90,26 @@ except:
     sys.exit(0)    
 
 print(str(len(rows)) + ' - linhas')
+
 for i in range(len(rows)):
     columns = rows[i].find_elements(By.TAG_NAME, 'td')
+    id_ = i + 2
     
     l = [] 
     values = [] 
     for j in range(len(columns)): 
         l.append(columns[j].text)
     button = columns[4].find_element(By.TAG_NAME, 'button')
+
+    # extrai dados dos campos select
+    select_element = nav.find_element(By.ID, 'PRO_' + str(id_))
+    select_object = Select(select_element)
+    select1 = select_object.first_selected_option.text        
+
+    select_element_div = nav.find_element(By.ID, 'CEST_' + str(id_))
+    select_element = select_element_div.find_element(By.TAG_NAME, 'select')
+    select_object = Select(select_element)
+    select2 = select_object.first_selected_option.text        
 
     try:
         values.append(l[0])
@@ -109,11 +121,16 @@ for i in range(len(rows)):
         keys = ['item', 'gtim', 'cest', 'ncm', 'desc', 'cest_sel']
         linha =  dict(zip(keys, values))
         if linha['cest'] == linha['cest_sel']:
+            print()
+            print('-' * 60)
             print(linha)
+            print('Classificacao adotada: ') 
             button.click()
             nav.implicitly_wait(t)
+            print(select1)
+            print(select2)
 
     except IndexError as e:
-        print(f'[ERRO] na linha {i} - {e}')
+        print(f'[CLASSIFICAR] linha {i} - {e}')
 
 #nav.quit()
