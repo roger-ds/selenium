@@ -13,7 +13,7 @@ import sys
 
 def iniciar_driver():
     firefox_options = Options()
-    arguments = ['--lang=pt-BR', '--width=800', '--height=900', '--incognito']
+    arguments = ['--lang=pt-BR', '--width=1000', '--height=900', '--incognito']
     for argument in arguments:
         firefox_options.add_argument(argument)
 
@@ -22,7 +22,7 @@ def iniciar_driver():
 
     wait = WebDriverWait(
         driver,
-        10,
+        3600, # 1 hora
         poll_frequency=1,
         ignored_exceptions=[
             NoSuchElementException,
@@ -32,15 +32,42 @@ def iniciar_driver():
     )
     return driver, wait
 
-nav, wait = iniciar_driver()
+
+def aguarda_click_do_usuario(driver, element):
+
+    # here is a sample of an element you can create via js (this one is a hidden input)
+    javascript = "let element = arguments[0];\
+                  element.addEventListener('click', function() { \
+                        let input = document.createElement('input'); \
+                        input.setAttribute('type', 'hidden');  \
+                        input.setAttribute('id', 'my_input'); \
+                        document.body.appendChild(input); \
+                  });"
+
+    # finally you send the javascript to your webbrowser with execute_script
+    driver.execute_script(javascript,element)
+
+    # then you will be able to wait the element to be created 
+    #(30 is te timeout in seconds, you should adjust as you need)
+    wait.until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="my_input"]')))
+
+    # remove the element created via js
+    element = driver.find_element(By.ID, 'my_input')
+    driver.execute_script("""
+    var element = arguments[0];
+    element.parentNode.removeChild(element);
+    """, element)   
 
 
 # Dados
 t = 1
-cnpj = '05788992000187'
+cnpj = '11673145001494'
 data_ini = '2021-OUT'
 data_fim = '2022-MAR'
 timeout = 500 # tempo limite em segundos para carregamento da pagina
+
+nav, wait = iniciar_driver()
 
 nav.get('https://www.sefaz.ap.gov.br/MATHEUS1/')
 nav.find_element(By.NAME, 'login').send_keys('rogerio.rodrigues')
@@ -122,20 +149,32 @@ for i in range(len(rows)):
         keys.append('cest_sel')
 
     linha =  dict(zip(keys, values))
+    print()
+    print('-' * 60)
     print(linha)
+    nav.execute_script('arguments[0].scrollIntoView(false);', button)
+
+    select_element = nav.find_element(By.ID, 'PRO_' + str(id_))
+    select_object = Select(select_element)
+    select1 = select_object.first_selected_option.text        
 
     try:
-        if linha['cest'] == linha['cest_sel']:
+        if linha['cest'] == linha['cest_sel'] and select1 != '':
             button.click()
             nav.implicitly_wait(t)
+        else:
+            1 / 0 # Exception gerada para forćar a entrada  no bloco except
 
     except Exception as e:
-        print(f'[ERRO] na linha {i + 1} - {e}')
+        print(f'[CLASSIFICAR]  linha {i + 1}')
+
         if linha['ncm'] not in ncm_erro:
             ncm_erro.append(linha['ncm'])
-            input( 'Classificacao adotada: ') 
+            print('Classificacao adotada: ') 
+            aguarda_click_do_usuario(nav, button)
 
             # classifica manualmente  e captrura selecao
+            
             select_element = nav.find_element(By.ID, 'PRO_' + str(id_))
             select_object = Select(select_element)
             select1 = select_object.first_selected_option.text        
