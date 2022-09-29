@@ -152,16 +152,26 @@ for i in range(len(rows)):
     print()
     print('-' * 60)
     print(linha)
+    print('Classificacao adotada: ') 
+
     nav.execute_script('arguments[0].scrollIntoView(false);', button)
 
+    # extrai dados dos campos select
     select_element = nav.find_element(By.ID, 'PRO_' + str(id_))
     select_object = Select(select_element)
     select1 = select_object.first_selected_option.text        
+
+    select_element_div = nav.find_element(By.ID, 'CEST_' + str(id_))
+    select_element = select_element_div.find_element(By.TAG_NAME, 'select')
+    select_object = Select(select_element)
+    select2 = select_object.first_selected_option.text        
 
     try:
         if linha['cest'] == linha['cest_sel'] and select1 != '':
             button.click()
             nav.implicitly_wait(t)
+            print(select1)
+            print(select2)
         else:
             1 / 0 # Exception gerada para forćar a entrada  no bloco except
 
@@ -170,7 +180,6 @@ for i in range(len(rows)):
 
         if linha['ncm'] not in ncm_erro:
             ncm_erro.append(linha['ncm'])
-            print('Classificacao adotada: ') 
             aguarda_click_do_usuario(nav, button)
 
             # classifica manualmente  e captrura selecao
@@ -193,6 +202,7 @@ for i in range(len(rows)):
             select_object = Select(select_element)
             select1 = dic_ncm_erro[linha['ncm']][0]        
             select_object.select_by_visible_text(select1)
+            print(select1)
             sleep(t)
 
             select_element_div = nav.find_element(By.ID, 'CEST_' + str(id_))
@@ -200,6 +210,7 @@ for i in range(len(rows)):
             select_object = Select(select_element)
             select2 = dic_ncm_erro[linha['ncm']][1]        
             select_object.select_by_visible_text(select2)
+            print(select2)
             sleep(t)
 
             button.click()
