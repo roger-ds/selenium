@@ -13,7 +13,7 @@ import sys
 
 def iniciar_driver():
     firefox_options = Options()
-    arguments = ['--lang=pt-BR', '--width=1000', '--height=900', '--incognito']
+    arguments = ['--lang=pt-BR', '--width=1000', '--height=750', '--incognito']
     for argument in arguments:
         firefox_options.add_argument(argument)
 
@@ -63,15 +63,15 @@ def aguarda_click_do_usuario(driver, element):
 # Dados
 t = 1
 cnpj = input('Entre com o CNPJ (apenas números): ')
-data_ini = '2021-OUT'
-data_fim = '2022-MAR'
+data_ini = '2022-JUL'
+data_fim = '2022-SET'
 timeout = 500 # tempo limite em segundos para carregamento da pagina
 
 nav, wait = iniciar_driver()
 
 nav.get('https://www.sefaz.ap.gov.br/MATHEUS1/')
 nav.find_element(By.NAME, 'login').send_keys('rogerio.rodrigues')
-nav.find_element(By.NAME, 'senha').send_keys('Fiscal@960')
+nav.find_element(By.NAME, 'senha').send_keys('Fiscal#96')
 nav.implicitly_wait(t)
 nav.find_element(By.NAME, 'submit').click()
 nav.implicitly_wait(t)
@@ -101,10 +101,11 @@ nav.find_element(By.NAME, 'submit').click()
 
 # Aguarda o carregamento da pagina
 try:
-    wait.until(lambda nav: nav.execute_script('return document.readyState') == 'complete')
+    wait.until(lambda nav: nav.execute_script(
+        'return document.readyState') == 'complete')
     print('Page is ready!')
 except:
-    print('Loading took tooo much time')
+    print('Loading took toooo much time')
 
 # Percorre a tabela de itens
 try:
@@ -154,7 +155,8 @@ for i in range(len(rows)):
     print(linha)
     print('Classificacao adotada: ') 
 
-    nav.execute_script('arguments[0].scrollIntoView(false);', button)
+    nav.execute_script(
+        'arguments[0].scrollIntoView({block: "center"});', button)
 
     # extrai dados dos campos select
     select_element = nav.find_element(By.ID, 'PRO_' + str(id_))
